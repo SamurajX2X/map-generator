@@ -1,0 +1,25 @@
+.container {
+    display: flex;
+    gap: 20px;
+}
+
+.palette {
+    width: 200px;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.texture-grid canvas {
+    /* width: 100%;
+    height: auto; */
+    cursor: pointer;
+}
+
+.texture-grid canvas:hover {
+    border-color: #666;
+}
+
+/* canvas {
+    border: 1px solid #000;
+    background: #fff;
+} */

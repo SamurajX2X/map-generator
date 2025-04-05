@@ -1,0 +1,19 @@
+{
+    "name": "mapgenerator",
+    "version": "1.0.0",
+    "description": "MapGenerator school project",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "tsc",
+        "start": "tsc --watch"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "ts": "^0.2.2"
+    },
+    "devDependencies": {
+        "typescript": "^5.8.2"
+    }
+}

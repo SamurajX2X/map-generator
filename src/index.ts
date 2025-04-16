@@ -1,6 +1,9 @@
 import { MapEditor } from './MapEditor.js';
 import { TexturePalette } from './TexturePalette.js';
 
+/**
+ * @param e
+ */
 document.addEventListener('DOMContentLoaded', (e) => {
     const canvas = document.getElementById('mapCanvas') as HTMLCanvasElement;
     const textureGrid = document.getElementById('texture-grid') as HTMLDivElement;
@@ -14,16 +17,12 @@ document.addEventListener('DOMContentLoaded', (e) => {
         editor.setCurrentTexture(texture);
     });
 
-    // Clear button functionality
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
-
             editor.clearMap();
-
         });
     }
 
-    // Export button functionality
     if (exportBtn) {
         exportBtn.addEventListener('click', () => {
             const mapData = editor.exportMap();
@@ -38,6 +37,9 @@ document.addEventListener('DOMContentLoaded', (e) => {
     }
 });
 
+/**
+ * @param e
+ */
 document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 });

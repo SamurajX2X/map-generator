@@ -130,20 +130,20 @@ export class MapEditor {
             const endX = Math.max(0, Math.min(e.clientX - rect.left, this.canvas.width));
             const endY = Math.max(0, Math.min(e.clientY - rect.top, this.canvas.height));
 
-            // const minGridX = Math.floor(Math.min(this.dragStartX, endX) / this.tileSize);
-            // const maxGridX = Math.floor(Math.max(this.dragStartX, endX) / this.tileSize);
-            // const minGridY = Math.floor(Math.min(this.dragStartY, endY) / this.tileSize);
-            // const maxGridY = Math.floor(Math.max(this.dragStartY, endY) / this.tileSize);
+            const minGridX = Math.floor(Math.min(this.dragStartX, endX) / this.tileSize);
+            const maxGridX = Math.floor(Math.max(this.dragStartX, endX) / this.tileSize);
+            const minGridY = Math.floor(Math.min(this.dragStartY, endY) / this.tileSize);
+            const maxGridY = Math.floor(Math.max(this.dragStartY, endY) / this.tileSize);
 
-
-
-            const gridX = Math.floor(endX / this.tileSize);
-            const gridY = Math.floor(endY / this.tileSize);
-
-            if (gridY < this.mapGrid.length && gridX < this.mapGrid[0].length) {
-                const blockKey = `${gridX},${gridY}`;
-                this.selectedBlocks.add(blockKey);
-                this.highlightSelectedBlock(gridX, gridY);
+            // Select all tiles within the dragged area
+            for (let y = minGridY; y <= maxGridY; y++) {
+                for (let x = minGridX; x <= maxGridX; x++) {
+                    if (y < this.mapGrid.length && x < this.mapGrid[0].length) {
+                        const blockKey = `${x},${y}`;
+                        this.selectedBlocks.add(blockKey);
+                        this.highlightSelectedBlock(x, y);
+                    }
+                }
             }
 
 

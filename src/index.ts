@@ -1,9 +1,6 @@
 import { MapEditor } from './MapEditor.js';
 import { TexturePalette } from './TexturePalette.js';
 
-/**
- * @param e
- */
 document.addEventListener('DOMContentLoaded', (e) => {
     const canvas = document.getElementById('mapCanvas') as HTMLCanvasElement;
     const textureGrid = document.getElementById('texture-grid') as HTMLDivElement;
@@ -37,9 +34,6 @@ document.addEventListener('DOMContentLoaded', (e) => {
     }
 });
 
-/**
- * @param e
- */
 document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 });

@@ -1,7 +1,4 @@
 export class TexturePalette {
-    /**
-     * @param container
-     */
     constructor(container) {
         this.selectedTexture = null;
         this.callback = null;
@@ -33,6 +30,8 @@ export class TexturePalette {
                     canvas.dataset.x = i.toString();
                     canvas.dataset.y = j.toString();
                     const ctx = canvas.getContext('2d');
+                    if (!ctx)
+                        continue;
                     ctx.drawImage(this.textureImage, i * this.tileWidth, j * this.tileHeight, this.tileWidth, this.tileHeight, 0, 0, canvas.width, canvas.height);
                     ctx.strokeStyle = '#ccc';
                     ctx.lineWidth = 1;
@@ -46,23 +45,22 @@ export class TexturePalette {
             }
         };
     }
-    /**
-     * @param i
-     * @param j
-     * @param canvas
-     */
     selectTexture(i, j, canvas) {
         if (this.selectedCanvas) {
             const prevCtx = this.selectedCanvas.getContext('2d');
-            const prevI = parseInt(this.selectedCanvas.dataset.x || '0');
-            const prevJ = parseInt(this.selectedCanvas.dataset.y || '0');
-            prevCtx.clearRect(0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
-            prevCtx.drawImage(this.textureImage, prevI * this.tileWidth, prevJ * this.tileHeight, this.tileWidth, this.tileHeight, 0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
-            prevCtx.strokeStyle = '#ccc';
-            prevCtx.lineWidth = 1;
-            prevCtx.strokeRect(0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
+            if (prevCtx) {
+                const prevI = parseInt(this.selectedCanvas.dataset.x || '0');
+                const prevJ = parseInt(this.selectedCanvas.dataset.y || '0');
+                prevCtx.clearRect(0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
+                prevCtx.drawImage(this.textureImage, prevI * this.tileWidth, prevJ * this.tileHeight, this.tileWidth, this.tileHeight, 0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
+                prevCtx.strokeStyle = '#ccc';
+                prevCtx.lineWidth = 1;
+                prevCtx.strokeRect(0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
+            }
         }
         const ctx = canvas.getContext('2d');
+        if (!ctx)
+            return;
         ctx.strokeStyle = '#0066ff';
         ctx.lineWidth = 2;
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
@@ -72,9 +70,6 @@ export class TexturePalette {
             this.callback(this.selectedTexture);
         }
     }
-    /**
-     * @param callback
-     */
     onTextureSelect(callback) {
         this.callback = callback;
     }

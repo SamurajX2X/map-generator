@@ -11,10 +11,6 @@ export class TexturePalette {
     private selectedCanvas: HTMLCanvasElement | null = null;
     private scaleFactor: number = 0.65;
 
-    /**
-     * @param container
-     */
-
     constructor(container: HTMLDivElement) {
         this.container = container;
         this.loadTextures();
@@ -29,19 +25,27 @@ export class TexturePalette {
             this.tileHeight = this.textureImage.height / this.cols;
 
             const gridContainer = document.createElement('div');
-            gridContainer.className = 'texture-grid-container';
+            gridContainer.className = 'texture-grid-container'; // Use class from CSS
             this.container.appendChild(gridContainer);
 
             for (let j = 0; j < this.cols; j++) {
                 for (let i = 0; i < this.rows; i++) {
                     const canvas = document.createElement('canvas');
-                    canvas.width = this.tileWidth * this.scaleFactor;
-                    canvas.height = this.tileHeight * this.scaleFactor;
-                    canvas.className = 'texture-tile';
+                    // Calculate scaled size, ensuring it's at least 1px
+                    const scaledWidth = Math.max(1, Math.floor(this.tileWidth * this.scaleFactor));
+                    const scaledHeight = Math.max(1, Math.floor(this.tileHeight * this.scaleFactor));
+                    canvas.width = scaledWidth;
+                    canvas.height = scaledHeight;
+                    canvas.className = 'texture-tile'; // Use class from CSS
                     canvas.dataset.x = i.toString();
                     canvas.dataset.y = j.toString();
+                    canvas.title = `Texture ${i}-${j}`; // Add tooltip
 
-                    const ctx = canvas.getContext('2d')!;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) continue;
+
+                    // Ensure crisp rendering
+                    ctx.imageSmoothingEnabled = false;
 
                     ctx.drawImage(
                         this.textureImage,
@@ -55,9 +59,10 @@ export class TexturePalette {
                         canvas.height
                     );
 
-                    ctx.strokeStyle = '#ccc';
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                    // No need to draw border here, CSS handles it
+                    // ctx.strokeStyle = '#444'; // Match dark theme if needed, but CSS preferred
+                    // ctx.lineWidth = 1;
+                    // ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
                     this.canvases.push(canvas);
 
@@ -69,42 +74,21 @@ export class TexturePalette {
                 }
             }
         };
+        this.textureImage.onerror = () => {
+            console.error("Failed to load texture spritesheet.");
+            // Optionally display an error message to the user
+        };
     }
 
-    /**
-     * @param i
-     * @param j
-     * @param canvas
-     */
     private selectTexture(i: number, j: number, canvas: HTMLCanvasElement) {
+        // Remove 'selected' class from previously selected canvas
         if (this.selectedCanvas) {
-            const prevCtx = this.selectedCanvas.getContext('2d')!;
-            const prevI = parseInt(this.selectedCanvas.dataset.x || '0');
-            const prevJ = parseInt(this.selectedCanvas.dataset.y || '0');
-
-            prevCtx.clearRect(0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
-            prevCtx.drawImage(
-                this.textureImage,
-                prevI * this.tileWidth,
-                prevJ * this.tileHeight,
-                this.tileWidth,
-                this.tileHeight,
-                0,
-                0,
-                this.selectedCanvas.width,
-                this.selectedCanvas.height
-            );
-
-            prevCtx.strokeStyle = '#ccc';
-            prevCtx.lineWidth = 1;
-            prevCtx.strokeRect(0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
+            this.selectedCanvas.classList.remove('selected');
+            // No need to redraw border, CSS handles removal
         }
 
-        const ctx = canvas.getContext('2d')!;
-        ctx.strokeStyle = '#0066ff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
+        // Add 'selected' class to the newly selected canvas
+        canvas.classList.add('selected');
         this.selectedCanvas = canvas;
         this.selectedTexture = `${i}-${j}`;
 
@@ -113,9 +97,6 @@ export class TexturePalette {
         }
     }
 
-    /**
-     * @param callback
-     */
     public onTextureSelect(callback: (texture: string) => void) {
         this.callback = callback;
     }

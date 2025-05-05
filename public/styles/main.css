@@ -1,66 +1,95 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Modern font */
     margin: 0;
     padding: 20px;
-    background-color: #f5f5f5;
+    background-color: #121212;
+    /* Even darker background */
+    color: #e0e0e0;
+    /* Slightly softer light text */
+    line-height: 1.6;
 }
 
 .header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    /* More space */
+    color: #e0e0e0;
+    font-size: 2em;
+    /* Larger header */
+    font-weight: 300;
+    /* Lighter font weight */
 }
 
 .container {
     display: flex;
-    gap: 20px;
+    gap: 30px;
+    /* Increased gap */
     max-width: 1800px;
-    /* Increased from 1400px to 1800px */
     margin: 0 auto;
     align-items: stretch;
-    /* Make items equal height */
     justify-content: center;
-    /* Center the content */
-    height: calc(100vh - 100px);
-    /* Use viewport height for better sizing */
+    height: calc(100vh - 120px);
+    /* Adjusted height */
 }
 
 .palette {
-    background-color: white;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: calc(50% - 20px);
-    /* 50% minus half the gap */
-    overflow: visible;
+    background-color: #1e1e1e;
+    /* Dark element background */
+    border-radius: 12px;
+    /* More rounded corners */
+    padding: 20px;
+    /* Increased padding */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    /* Deeper shadow */
+    /* Make palette narrower */
+    width: calc(25% - 15px);
+    /* Example: 25% width, adjust gap calculation (half of 30px gap) */
     display: flex;
     flex-direction: column;
+    border: 1px solid #333;
+    /* Subtle border */
 }
 
-.palette h2 {
+.palette h2,
+.canvas-area h2 {
     margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
+    margin-bottom: 15px;
+    /* Added margin bottom */
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+    /* Increased padding */
+    color: #00aaff;
+    /* Accent color for headings */
+    font-weight: 400;
+    /* Normal weight */
+    font-size: 1.4em;
 }
 
 .texture-grid {
     flex-grow: 1;
-    border: 1px solid #ddd;
+    border: 1px solid #333;
     overflow: auto;
-    /* Keep scrolling for texture grid */
-    height: calc(100% - 50px);
-    /* Full height minus some space for heading */
+    height: calc(100% - 65px);
+    /* Adjusted height */
+    background-color: #181818;
+    /* Slightly different dark */
+    border-radius: 6px;
+    /* Rounded corners for grid area */
 }
 
 .texture-grid-container {
     display: grid;
-    grid-template-columns: repeat(32, 1fr);
-    grid-auto-rows: min-content;
+    grid-template-columns: repeat(auto-fill, minmax(24px, 1fr));
+    /* Responsive columns */
+    gap: 4px;
+    /* Gap between tiles */
     padding: 10px;
-    background-color: #f5f5f5;
-    border: 1px solid #ddd;
+    background-color: transparent;
+    /* Use parent background */
+    border: none;
+    /* Remove inner border */
     align-content: flex-start;
-    min-height: 100%;
-    /* Ensure it takes up full height */
 }
 
 .texture-tile {
@@ -71,86 +100,212 @@ body {
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: none;
+    background-color: #2a2a2a;
+    /* Dark background for tiles */
+    border: 1px solid #444;
+    /* Tile border */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    /* Subtle shadow on tiles */
     width: 100%;
     height: auto;
+    aspect-ratio: 1 / 1;
+    /* Ensure tiles are square */
+    border-radius: 3px;
+    /* Slightly rounded tiles */
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+    /* Smooth transition */
 }
 
-.canvas-area {
-    background-color: white;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: calc(50% - 20px);
-    /* 50% minus half the gap */
-    display: flex;
-    flex-direction: column;
+.texture-tile:hover {
+    transform: scale(1.1);
+    /* Slightly enlarge on hover */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    /* Enhance shadow on hover */
+    z-index: 10;
+    /* Bring hovered tile to front */
+    position: relative;
+    /* Needed for z-index */
+    border-color: #666;
 }
 
-.canvas-area h2 {
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
+/* Style for the selected texture tile */
+.texture-tile.selected {
+    border: 2px solid #00aaff;
+    /* Brighter blue border */
+    box-shadow: 0 0 8px rgba(0, 170, 255, 0.5);
+    /* Glow effect */
+    transform: scale(1.05);
+    /* Keep slightly larger */
+    z-index: 5;
+    position: relative;
 }
+
 
 .canvas-container {
-    border: 1px solid #ddd;
-    margin-bottom: 15px;
-    overflow: hidden;
-    /* Change from 'auto' to 'hidden' to hide scrollbars */
+    border: 1px solid #333;
+    margin-bottom: 20px;
+    /* Increased margin */
+    overflow: auto;
+    /* Change from hidden to auto to allow scrolling */
     flex-grow: 1;
-    height: 600px;
-    /* Set fixed height to match MapEditor canvas height */
+    /* height: 600px; */
+    /* Remove fixed height */
     display: flex;
-    justify-content: center;
-    align-items: center;
+    /* Keep flex, but alignment might not be needed if canvas is larger */
+    /* justify-content: center; */
+    /* Remove center if canvas is larger */
+    /* align-items: center; */
+    /* Remove center if canvas is larger */
+    background-color: #181818;
+    /* Match texture grid background */
+    border-radius: 6px;
+    /* Rounded corners */
+    position: relative;
+    /* For potential overlays */
 }
 
 canvas#mapCanvas {
-    background: #fff;
+    background: #252526;
+    /* Canvas background */
     display: block;
-    max-width: 100%;
-    /* Ensure canvas doesn't overflow container */
-    max-height: 100%;
+    /* Remove max-width/max-height to allow canvas to be its actual size */
+    /* max-width: 100%; */
+    /* max-height: 100%; */
+    image-rendering: pixelated;
+    /* Ensure crisp pixels */
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    /* Add margin auto if you want it centered when smaller than container */
+    /* margin: auto; */
 }
 
 .controls {
     display: flex;
-    gap: 10px;
+    gap: 15px;
+    /* Increased gap */
+    margin-top: auto;
+    /* Push controls to bottom */
+    padding-top: 15px;
+    /* Space above controls */
+    border-top: 1px solid #333;
+    /* Separator line */
 }
 
 button {
-    padding: 8px 16px;
-    border: none;
-    background-color: #4CAF50;
-    color: white;
+    padding: 10px 20px;
+    /* Larger padding */
+    border: 1px solid #555;
+    background-color: #333;
+    /* Darker button */
+    color: #e0e0e0;
     cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 6px;
+    /* More rounded */
+    font-size: 1em;
+    /* Relative font size */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    /* Smooth transition */
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #444;
+    /* Lighter on hover */
+    border-color: #777;
+}
+
+button:active {
+    background-color: #555;
+    /* Darker when pressed */
 }
 
 button#clearBtn {
-    background-color: #f44336;
+    background-color: #6b1a1a;
+    /* Darker red */
+    border-color: #882a2a;
 }
 
 button#clearBtn:hover {
-    background-color: #d32f2f;
+    background-color: #882a2a;
+    /* Lighter dark red */
+    border-color: #a04040;
 }
 
-/* Add responsiveness */
+button#clearBtn:active {
+    background-color: #a04040;
+}
+
+/* Adjust responsiveness if needed */
 @media (max-width: 1200px) {
+    body {
+        padding: 10px;
+        /* Less padding on smaller screens */
+    }
+
     .container {
         flex-direction: column;
+        height: auto;
+        gap: 20px;
     }
 
     .palette,
     .canvas-area {
-        width: 100%;
+        /* Reset width for column layout */
+        width: calc(100% - 42px);
+        /* Adjusted width */
+        margin-bottom: 20px;
     }
+
+    .canvas-container {
+        min-height: 400px;
+        /* Ensure minimum height */
+    }
+}
+
+/* Dark theme for context menu */
+.map-editor-context-menu {
+    /* Use a class instead of ID */
+    position: absolute;
+    background-color: #2a2a2a;
+    border: 1px solid #555;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.7);
+    /* Stronger shadow */
+    color: #e0e0e0;
+    border-radius: 6px;
+    padding: 6px 0;
+    z-index: 1001;
+    min-width: 160px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.95em;
+}
+
+.map-editor-context-menu-item {
+    /* Class for items */
+    padding: 8px 20px;
+    /* More padding */
+    cursor: pointer;
+    color: #e0e0e0;
+    white-space: nowrap;
+    transition: background-color 0.1s ease;
+}
+
+.map-editor-context-menu-item:hover {
+    background-color: #007acc;
+    /* Highlight color on hover */
+    color: #ffffff;
+}
+
+.map-editor-context-menu-item.disabled {
+    /* Class for disabled items */
+    color: #666 !important;
+    cursor: default;
+    background-color: transparent !important;
+    /* Ensure no hover effect */
+}
+
+.map-editor-context-menu-separator {
+    /* Class for separators */
+    height: 1px;
+    background-color: #555;
+    margin: 6px 0;
+    padding: 0;
 }

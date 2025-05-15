@@ -1,17 +1,26 @@
+/**
+ * Paleta tekstur do wyboru
+ */
 export class TexturePalette {
+    /**
+     * Tworzy palete tekstur
+     */
     constructor(container) {
-        this.selectedTexture = null;
-        this.callback = null;
-        this.tileWidth = 0;
-        this.tileHeight = 0;
-        this.rows = 32;
-        this.cols = 20;
-        this.canvases = [];
-        this.selectedCanvas = null;
-        this.scaleFactor = 0.65;
+        this.selectedTexture = null; // wybrana tekstura
+        this.callback = null; // callback po wyborze
+        this.tileWidth = 0; // szerokosc kafelka
+        this.tileHeight = 0; // wysokosc kafelka
+        this.rows = 32; // wiersze
+        this.cols = 20; // kolumny
+        this.canvases = []; // kafelki
+        this.selectedCanvas = null; // wybrany canvas
+        this.scaleFactor = 0.65; // skala
         this.container = container;
         this.loadTextures();
     }
+    /**
+     * Laduje tekstury
+     */
     loadTextures() {
         this.textureImage = new Image();
         this.textureImage.src = './images/sprites.png';
@@ -24,18 +33,19 @@ export class TexturePalette {
             for (let j = 0; j < this.cols; j++) {
                 for (let i = 0; i < this.rows; i++) {
                     const canvas = document.createElement('canvas');
-                    canvas.width = this.tileWidth * this.scaleFactor;
-                    canvas.height = this.tileHeight * this.scaleFactor;
+                    const scaledWidth = Math.max(1, Math.floor(this.tileWidth * this.scaleFactor));
+                    const scaledHeight = Math.max(1, Math.floor(this.tileHeight * this.scaleFactor));
+                    canvas.width = scaledWidth;
+                    canvas.height = scaledHeight;
                     canvas.className = 'texture-tile';
                     canvas.dataset.x = i.toString();
                     canvas.dataset.y = j.toString();
+                    canvas.title = `Texture ${i}-${j}`;
                     const ctx = canvas.getContext('2d');
                     if (!ctx)
                         continue;
+                    ctx.imageSmoothingEnabled = false;
                     ctx.drawImage(this.textureImage, i * this.tileWidth, j * this.tileHeight, this.tileWidth, this.tileHeight, 0, 0, canvas.width, canvas.height);
-                    ctx.strokeStyle = '#ccc';
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
                     this.canvases.push(canvas);
                     canvas.addEventListener('click', () => {
                         this.selectTexture(i, j, canvas);
@@ -44,32 +54,27 @@ export class TexturePalette {
                 }
             }
         };
+        this.textureImage.onerror = () => {
+            console.error("Błąd ładowania spriteshita.");
+        };
     }
+    /**
+     * Zaznacza teksture
+     */
     selectTexture(i, j, canvas) {
         if (this.selectedCanvas) {
-            const prevCtx = this.selectedCanvas.getContext('2d');
-            if (prevCtx) {
-                const prevI = parseInt(this.selectedCanvas.dataset.x || '0');
-                const prevJ = parseInt(this.selectedCanvas.dataset.y || '0');
-                prevCtx.clearRect(0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
-                prevCtx.drawImage(this.textureImage, prevI * this.tileWidth, prevJ * this.tileHeight, this.tileWidth, this.tileHeight, 0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
-                prevCtx.strokeStyle = '#ccc';
-                prevCtx.lineWidth = 1;
-                prevCtx.strokeRect(0, 0, this.selectedCanvas.width, this.selectedCanvas.height);
-            }
+            this.selectedCanvas.classList.remove('selected');
         }
-        const ctx = canvas.getContext('2d');
-        if (!ctx)
-            return;
-        ctx.strokeStyle = '#0066ff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        canvas.classList.add('selected');
         this.selectedCanvas = canvas;
         this.selectedTexture = `${i}-${j}`;
         if (this.callback) {
             this.callback(this.selectedTexture);
         }
     }
+    /**
+     * Ustawia callback po wyborze tekstury
+     */
     onTextureSelect(callback) {
         this.callback = callback;
     }

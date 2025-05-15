@@ -1,21 +1,32 @@
+/**
+ * Zarzadza rysowaniem na canvasie
+ * @param canvas - element canvas
+ * @param tileSize - rozmiar kafelka
+ */
 export class CanvasManager {
-    private ctx: CanvasRenderingContext2D;
-    private spritesheet!: HTMLImageElement;
-    private spritesheetRows: number = 32;
-    private spritesheetCols: number = 20;
-    private isSpritesheetLoaded: boolean = false;
+    private ctx: CanvasRenderingContext2D; // kontekst 2d
+    private spritesheet!: HTMLImageElement; // obrazek z teksturami
+    private spritesheetRows: number = 32; // wiersze w spritesheet
+    private spritesheetCols: number = 20; // kolumny w spritesheet
+    private isSpritesheetLoaded: boolean = false; // czy zaladowano spritesheet
 
+    /**
+     * Tworzy managera canvasu
+     */
     constructor(
         private canvas: HTMLCanvasElement,
         private tileSize: number
     ) {
         const context = this.canvas.getContext('2d');
         if (!context) {
-            throw new Error("Failed to get 2D context from canvas");
+            throw new Error("Brak kontekstu 2d na canvasie");
         }
         this.ctx = context;
     }
 
+    /**
+     * Ustawia spritesheet
+     */
     public setSpritesheet(spritesheet: HTMLImageElement, rows: number, cols: number): void {
         this.spritesheet = spritesheet;
         this.spritesheetRows = rows;
@@ -23,15 +34,24 @@ export class CanvasManager {
         this.isSpritesheetLoaded = true;
     }
 
+    /**
+     * Zmienia rozmiar kafelka
+     */
     public updateTileSize(newTileSize: number): void {
         this.tileSize = newTileSize;
     }
 
+    /**
+     * Czyści cały canvas
+     */
     public clearCanvas(): void {
         this.ctx.fillStyle = '#FFFFFF';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
+    /**
+     * Rysuje siatkę
+     */
     public drawGrid(): void {
         this.ctx.strokeStyle = '#CCCCCC';
         this.ctx.lineWidth = 0.5;
@@ -49,16 +69,16 @@ export class CanvasManager {
         }
     }
 
+    /**
+     * Rysuje teksturę na danym polu
+     */
     public drawTexture(gridX: number, gridY: number, textureId: string): void {
         if (!this.isSpritesheetLoaded || !textureId) return;
-
         try {
             const [spriteX, spriteY] = textureId.split('-').map(Number);
             if (isNaN(spriteX) || isNaN(spriteY)) return;
-
             const spriteTileWidth = this.spritesheet.width / this.spritesheetRows;
             const spriteTileHeight = this.spritesheet.height / this.spritesheetCols;
-
             this.ctx.fillStyle = '#FFFFFF';
             this.ctx.fillRect(
                 gridX * this.tileSize,
@@ -66,7 +86,6 @@ export class CanvasManager {
                 this.tileSize,
                 this.tileSize
             );
-
             this.ctx.drawImage(
                 this.spritesheet,
                 spriteX * spriteTileWidth,
@@ -79,10 +98,13 @@ export class CanvasManager {
                 this.tileSize
             );
         } catch (error) {
-            console.error(`Error drawing texture ${textureId} at ${gridX},${gridY}:`, error);
+            console.error("Błąd rysowania tekstury", textureId, "na", gridX + "," + gridY + ":", error);
         }
     }
 
+    /**
+     * Rysuje ramkę wokół komórki
+     */
     public drawCellGrid(gridX: number, gridY: number): void {
         this.ctx.strokeStyle = '#CCCCCC';
         this.ctx.lineWidth = 0.5;
@@ -94,6 +116,9 @@ export class CanvasManager {
         );
     }
 
+    /**
+     * Czyści komórkę
+     */
     public clearCell(gridX: number, gridY: number): void {
         this.ctx.fillStyle = '#FFFFFF';
         this.ctx.fillRect(
@@ -104,6 +129,9 @@ export class CanvasManager {
         );
     }
 
+    /**
+     * Rysuje blok (czyści, rysuje teksturę, rysuje ramkę)
+     */
     public redrawBlock(gridX: number, gridY: number, textureId: string | null): void {
         this.clearCell(gridX, gridY);
         if (textureId) {
@@ -112,6 +140,9 @@ export class CanvasManager {
         this.drawCellGrid(gridX, gridY);
     }
 
+    /**
+     * Podświetla blok
+     */
     public highlightBlock(gridX: number, gridY: number): void {
         this.ctx.fillStyle = 'rgba(0, 102, 255, 0.3)';
         this.ctx.fillRect(
@@ -122,6 +153,9 @@ export class CanvasManager {
         );
     }
 
+    /**
+     * Rysuje całą mapę
+     */
     public redrawEntireMap(mapGrid: string[][]): void {
         this.clearCanvas();
         for (let y = 0; y < mapGrid.length; y++) {

@@ -2,8 +2,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     /* Modern font */
     margin: 0;
-    padding: 10px;
-    /* Reduced padding to maximize screen space */
+    padding: 20px;
     background-color: #121212;
     /* Even darker background */
     color: #e0e0e0;

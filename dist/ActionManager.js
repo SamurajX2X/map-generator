@@ -1,25 +1,35 @@
+/**
+ * Zarzadza historią akcji (undo/redo)
+ */
 export class ActionManager {
     constructor() {
-        this.undoStack = [];
-        this.redoStack = [];
-        this.maxHistorySize = 50;
+        this.undoStack = []; // stos undo
+        this.redoStack = []; // stos redo
+        this.maxHistorySize = 50; // max rozmiar historii
     }
+    /**
+     * Cofnij akcje
+     */
     undo() {
         if (this.undoStack.length > 0) {
             const action = this.undoStack.pop();
             action.undo();
             this.redoStack.push(action);
-            console.log("Undo performed, stack size:", this.undoStack.length);
         }
     }
+    /**
+     * Ponow akcje
+     */
     redo() {
         if (this.redoStack.length > 0) {
             const action = this.redoStack.pop();
             action.execute();
             this.undoStack.push(action);
-            console.log("Redo performed, stack size:", this.redoStack.length);
         }
     }
+    /**
+     * Dodaj akcje do historii
+     */
     recordAction(action) {
         this.undoStack.push(action);
         this.redoStack = [];
@@ -27,12 +37,21 @@ export class ActionManager {
             this.undoStack.shift();
         }
     }
+    /**
+     * Czy można cofnąć
+     */
     canUndo() {
         return this.undoStack.length > 0;
     }
+    /**
+     * Czy można ponowić
+     */
     canRedo() {
         return this.redoStack.length > 0;
     }
+    /**
+     * Czyści historię
+     */
     clearHistory() {
         this.undoStack = [];
         this.redoStack = [];

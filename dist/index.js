@@ -1,8 +1,7 @@
 import { MapEditor } from './MapEditor.js';
 import { TexturePalette } from './TexturePalette.js';
-/**
- * @param e
- */
+// tu nie ma sensu docstringów, bo to tylko startuje aplikacje i podpina eventy
+// zmienne: canvas, textureGrid, clearBtn, exportBtn, editor, palette
 document.addEventListener('DOMContentLoaded', (e) => {
     const canvas = document.getElementById('mapCanvas');
     const textureGrid = document.getElementById('texture-grid');
@@ -31,9 +30,6 @@ document.addEventListener('DOMContentLoaded', (e) => {
         });
     }
 });
-/**
- * @param e
- */
 document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 });

@@ -1,47 +1,70 @@
 import type { MapEditor } from './MapEditor.js';
 
+/**
+ * Handler do obslugi myszki i klawiatury
+ * @param canvas - element canvas
+ * @param edytor - glowny edytor mapy
+ * @param rozmiar - rozmiar kafelka
+ */
 export class InputHandler {
-    private isDragging: boolean = false;
-    private selectionOverlay: HTMLDivElement | null = null;
-    private dragStartClientX: number = 0;
-    private dragStartClientY: number = 0;
-    private dragHighlightedBlocks: Set<string> = new Set();
+    private isDragging: boolean = false; // czy ciagniesz myszka
+    private zaznaczOverlay: HTMLDivElement | null = null; // overlay do zaznaczania
+    private startX: number = 0; // poczatek x
+    private startY: number = 0; // poczatek y
+    private podswietlone: Set<string> = new Set(); // podswietlone bloki
 
-    private boundMouseMove: (e: MouseEvent) => void;
-    private boundMouseUp: (e: MouseEvent) => void;
+    private myszRuch: (e: MouseEvent) => void;
+    private myszUp: (e: MouseEvent) => void;
 
+    /**
+     * Tworzy handler inputu
+     * @param canvas - canvas
+     * @param edytor - edytor mapy
+     * @param rozmiar - rozmiar kafelka
+     */
     constructor(
         private canvas: HTMLCanvasElement,
-        private editor: MapEditor,
-        private tileSize: number
+        private edytor: MapEditor,
+        private rozmiar: number
     ) {
-        this.boundMouseMove = this.handleMouseMove.bind(this);
-        this.boundMouseUp = this.handleMouseUp.bind(this);
-        this.bindEvents();
+        this.myszRuch = this.handleMouseMove.bind(this);
+        this.myszUp = this.handleMouseUp.bind(this);
+        this.bindujZdarzenia();
     }
 
-    public updateTileSize(newTileSize: number): void {
-        this.tileSize = newTileSize;
+    /**
+     * Zmienia rozmiar kafelka
+     * @param nowy - nowy rozmiar
+     */
+    public zmienRozmiar(nowy: number): void {
+        this.rozmiar = nowy;
     }
 
-    private bindEvents(): void {
+    /**
+     * Podpina eventy do canvasu i dokumentu
+     */
+    private bindujZdarzenia(): void {
         this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         this.canvas.addEventListener('contextmenu', this.handleContextMenu.bind(this));
 
         document.addEventListener('click', (e) => {
-            const contextMenu = document.getElementById('mapEditorContextMenu');
-            if (contextMenu && !contextMenu.contains(e.target as Node)) {
-                contextMenu.style.display = 'none';
+            const menu = document.getElementById('mapEditorContextMenu');
+            if (menu && !menu.contains(e.target as Node)) {
+                menu.style.display = 'none';
             }
         });
+    }    /**
+     * Sprawdza czy ctrl lub cmd (dla Macintosh)
+     */
+    private ctrl(e: MouseEvent | KeyboardEvent): boolean {
+        return e.ctrlKey || e.metaKey; // e.metaKey dla Macintosh (Command key)
     }
 
-    private isCtrlOrMeta(e: MouseEvent | KeyboardEvent): boolean {
-        return e.ctrlKey || e.metaKey;
-    }
-
-    private getGridCoordinates(clientX: number, clientY: number): { gridX: number, gridY: number } | null {
+    /**
+     * Zwraca wspolrzedne gridu z pozycji myszki
+     */
+    private gridXY(clientX: number, clientY: number): { x: number, y: number } | null {
         const rect = this.canvas.getBoundingClientRect();
         const x = clientX - rect.left;
         const y = clientY - rect.top;
@@ -50,48 +73,51 @@ export class InputHandler {
             return null;
         }
 
-        const gridX = Math.floor(x / this.tileSize);
-        const gridY = Math.floor(y / this.tileSize);
-
-        return { gridX, gridY };
+        return { x: Math.floor(x / this.rozmiar), y: Math.floor(y / this.rozmiar) };
     }
 
-    private getClampedCanvasCoordinates(clientX: number, clientY: number): { x: number, y: number } {
+    /**
+     * Zwraca wspolrzedne ograniczone do canvasu
+     */
+    private clampXY(clientX: number, clientY: number): { x: number, y: number } {
         const rect = this.canvas.getBoundingClientRect();
-        const canvasX = clientX - rect.left;
-        const canvasY = clientY - rect.top;
-        const clampedX = Math.max(0, Math.min(canvasX, this.canvas.width));
-        const clampedY = Math.max(0, Math.min(canvasY, this.canvas.height));
-        return { x: clampedX, y: clampedY };
+        const x = Math.max(0, Math.min(clientX - rect.left, this.canvas.width));
+        const y = Math.max(0, Math.min(clientY - rect.top, this.canvas.height));
+        return { x, y };
     }
 
-    private getGridAreaFromCanvasCoordinates(
-        startCanvasX: number, startCanvasY: number,
-        endCanvasX: number, endCanvasY: number
-    ): { minGridX: number, minGridY: number, maxGridX: number, maxGridY: number } {
-        const minGridX = Math.floor(Math.min(startCanvasX, endCanvasX) / this.tileSize);
-        const minGridY = Math.floor(Math.min(startCanvasY, endCanvasY) / this.tileSize);
-        const maxGridX = Math.floor((Math.max(startCanvasX, endCanvasX) + 0.001) / this.tileSize);
-        const maxGridY = Math.floor((Math.max(startCanvasY, endCanvasY) + 0.001) / this.tileSize);
-        return { minGridX, minGridY, maxGridX, maxGridY };
+    /**
+     * Zwraca prostokat na gridzie
+     */
+    private prostokatGrid(
+        startX: number, startY: number,
+        endX: number, endY: number
+    ): { minX: number, minY: number, maxX: number, maxY: number } {
+        const minX = Math.floor(Math.min(startX, endX) / this.rozmiar);
+        const minY = Math.floor(Math.min(startY, endY) / this.rozmiar);
+        const maxX = Math.floor((Math.max(startX, endX) + 0.001) / this.rozmiar);
+        const maxY = Math.floor((Math.max(startY, endY) + 0.001) / this.rozmiar);
+        return { minX, minY, maxX, maxY };
     }
 
-
+    /**
+     * Obsluga wcisniecia myszki
+     */
     private handleMouseDown(e: MouseEvent): void {
         if (e.button !== 0) return;
 
-        const coords = this.getClampedCanvasCoordinates(e.clientX, e.clientY);
+        const coords = this.clampXY(e.clientX, e.clientY);
         if (coords.x < 0 || coords.x >= this.canvas.width || coords.y < 0 || coords.y >= this.canvas.height) {
             return;
         }
 
-        this.dragStartClientX = e.clientX;
-        this.dragStartClientY = e.clientY;
+        this.startX = e.clientX;
+        this.startY = e.clientY;
         this.isDragging = false;
-        this.dragHighlightedBlocks.clear();
+        this.podswietlone.clear();
 
-        this.selectionOverlay = document.createElement('div');
-        Object.assign(this.selectionOverlay.style, {
+        this.zaznaczOverlay = document.createElement('div');
+        Object.assign(this.zaznaczOverlay.style, {
             position: 'fixed',
             border: '1px dashed #0078d7',
             backgroundColor: 'rgba(0, 120, 215, 0.1)',
@@ -103,151 +129,169 @@ export class InputHandler {
             height: '0px',
         });
 
-        document.addEventListener('mousemove', this.boundMouseMove);
-        document.addEventListener('mouseup', this.boundMouseUp);
+        document.addEventListener('mousemove', this.myszRuch);
+        document.addEventListener('mouseup', this.myszUp);
 
         e.preventDefault();
     }
 
+    /**
+     * Obsluga ruchu myszki
+     */
     private handleMouseMove(e: MouseEvent): void {
         if (!this.isDragging) {
-            const dx = e.clientX - this.dragStartClientX;
-            const dy = e.clientY - this.dragStartClientY;
+            const dx = e.clientX - this.startX;
+            const dy = e.clientY - this.startY;
             if (Math.sqrt(dx * dx + dy * dy) > 3) {
                 this.isDragging = true;
-                if (this.selectionOverlay) {
-                    document.body.appendChild(this.selectionOverlay);
+                if (this.zaznaczOverlay) {
+                    document.body.appendChild(this.zaznaczOverlay);
                 }
             }
         }
 
-        if (!this.isDragging || !this.selectionOverlay) return;
+        if (!this.isDragging || !this.zaznaczOverlay) return;
 
         const currentX = e.clientX;
         const currentY = e.clientY;
-        const overlayLeft = Math.min(this.dragStartClientX, currentX);
-        const overlayTop = Math.min(this.dragStartClientY, currentY);
-        const overlayWidth = Math.abs(currentX - this.dragStartClientX);
-        const overlayHeight = Math.abs(currentY - this.dragStartClientY);
+        const overlayLeft = Math.min(this.startX, currentX);
+        const overlayTop = Math.min(this.startY, currentY);
+        const overlayWidth = Math.abs(currentX - this.startX);
+        const overlayHeight = Math.abs(currentY - this.startY);
 
-        Object.assign(this.selectionOverlay.style, {
+        Object.assign(this.zaznaczOverlay.style, {
             left: `${overlayLeft}px`,
             top: `${overlayTop}px`,
             width: `${overlayWidth}px`,
             height: `${overlayHeight}px`,
         });
 
-        const startCoords = this.getClampedCanvasCoordinates(this.dragStartClientX, this.dragStartClientY);
-        const endCoords = this.getClampedCanvasCoordinates(currentX, currentY);
-        const { minGridX, minGridY, maxGridX, maxGridY } = this.getGridAreaFromCanvasCoordinates(
+        const startCoords = this.clampXY(this.startX, this.startY);
+        const endCoords = this.clampXY(currentX, currentY);
+        const { minX, minY, maxX, maxY } = this.prostokatGrid(
             startCoords.x, startCoords.y, endCoords.x, endCoords.y
         );
 
-        const newDraggedBlocks = new Set<string>();
-        for (let y = minGridY; y <= maxGridY; y++) {
-            for (let x = minGridX; x <= maxGridX; x++) {
-                if (this.editor.isValidCoordinate(x, y)) {
-                    newDraggedBlocks.add(`${x},${y}`);
+        const nowePodswietlone = new Set<string>();
+        for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
+                if (this.edytor.isValidCoordinate(x, y)) {
+                    nowePodswietlone.add(`${x},${y}`);
                 }
             }
         }
 
-        this.dragHighlightedBlocks.forEach(blockKey => {
-            if (!newDraggedBlocks.has(blockKey)) {
+        this.podswietlone.forEach(blockKey => {
+            if (!nowePodswietlone.has(blockKey)) {
                 const [x, y] = blockKey.split(',').map(Number);
-                this.editor.unhighlightBlockTemporary(x, y);
+                this.edytor.unhighlightBlockTemporary(x, y);
             }
         });
 
-        newDraggedBlocks.forEach(blockKey => {
-            if (!this.dragHighlightedBlocks.has(blockKey)) {
+        nowePodswietlone.forEach(blockKey => {
+            if (!this.podswietlone.has(blockKey)) {
                 const [x, y] = blockKey.split(',').map(Number);
-                this.editor.highlightBlockTemporary(x, y);
+                this.edytor.highlightBlockTemporary(x, y);
             }
         });
 
-        this.dragHighlightedBlocks = newDraggedBlocks;
+        this.podswietlone = nowePodswietlone;
     }
 
+    /**
+     * Obsluga puszczenia myszki
+     */
     private handleMouseUp(e: MouseEvent): void {
-        document.removeEventListener('mousemove', this.boundMouseMove);
-        document.removeEventListener('mouseup', this.boundMouseUp);
+        document.removeEventListener('mousemove', this.myszRuch);
+        document.removeEventListener('mouseup', this.myszUp);
 
-        this.dragHighlightedBlocks.forEach(blockKey => {
+        this.podswietlone.forEach(blockKey => {
             const [x, y] = blockKey.split(',').map(Number);
-            this.editor.unhighlightBlockTemporary(x, y);
+            this.edytor.unhighlightBlockTemporary(x, y);
         });
-        this.dragHighlightedBlocks.clear();
+        this.podswietlone.clear();
 
-        if (this.selectionOverlay?.parentElement) {
-            document.body.removeChild(this.selectionOverlay);
-            this.selectionOverlay = null;
+        if (this.zaznaczOverlay?.parentElement) {
+            document.body.removeChild(this.zaznaczOverlay);
+            this.zaznaczOverlay = null;
         }
 
         if (this.isDragging) {
-            const startCoords = this.getClampedCanvasCoordinates(this.dragStartClientX, this.dragStartClientY);
-            const endCoords = this.getClampedCanvasCoordinates(e.clientX, e.clientY);
-            const { minGridX, minGridY, maxGridX, maxGridY } = this.getGridAreaFromCanvasCoordinates(
+            const startCoords = this.clampXY(this.startX, this.startY);
+            const endCoords = this.clampXY(e.clientX, e.clientY);
+            const { minX, minY, maxX, maxY } = this.prostokatGrid(
                 startCoords.x, startCoords.y, endCoords.x, endCoords.y
             );
 
-            const multiSelect = this.isCtrlOrMeta(e);
-            this.editor.selectBlocksInArea(minGridX, minGridY, maxGridX, maxGridY, multiSelect);
+            const multiSelect = this.ctrl(e);
+            this.edytor.selectBlocksInArea(minX, minY, maxX, maxY, multiSelect);
         } else {
-            const gridCoords = this.getGridCoordinates(e.clientX, e.clientY);
-            if (gridCoords && this.editor.isValidCoordinate(gridCoords.gridX, gridCoords.gridY)) {
-                const multiSelect = this.isCtrlOrMeta(e);
-                this.editor.toggleBlockSelection(gridCoords.gridX, gridCoords.gridY, multiSelect);
+            const gridCoords = this.gridXY(e.clientX, e.clientY);
+            if (gridCoords && this.edytor.isValidCoordinate(gridCoords.x, gridCoords.y)) {
+                const multiSelect = this.ctrl(e);
+                this.edytor.toggleBlockSelection(gridCoords.x, gridCoords.y, multiSelect);
             }
         }
 
         this.isDragging = false;
-    }
-
+    }    /**
+     * Obsluga klawiatury
+     * Obsługuje skróty klawiszowe:
+     * - Delete: usuwa zaznaczone bloki
+     * - Ctrl/Cmd+Z: cofnij (undo)
+     * - Ctrl/Cmd+Shift+Z: ponów (redo)
+     * - Ctrl/Cmd+Y: ponów (redo)
+     * - Ctrl/Cmd+X: wytnij zaznaczenie
+     * - Ctrl/Cmd+C: kopiuj zaznaczenie
+     * - Ctrl/Cmd+V: wklej zaznaczenie
+     * - Ctrl/Cmd+A: zaznacz wszystko
+     * - Ctrl/Cmd+S: zapisz do pliku
+     * - Ctrl/Cmd+O: wczytaj z pliku
+     */
     private handleKeyDown(e: KeyboardEvent): void {
         if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
             return;
         }
 
-        const isModifier = this.isCtrlOrMeta(e);
+        const isModifier = this.ctrl(e);
         const key = e.key.toLowerCase();
         let handled = true;
 
         switch (key) {
             case 'delete':
-                this.editor.deleteSelectedBlocks();
+                this.edytor.deleteSelectedBlocks();
                 break;
             case 'z':
-                if (isModifier && !e.shiftKey) this.editor.undo();
-                else if (isModifier && e.shiftKey) this.editor.redo();
+                if (isModifier && !e.shiftKey) this.edytor.undo();
+                else if (isModifier && e.shiftKey) this.edytor.redo();
                 else handled = false;
                 break;
             case 'y':
-                if (isModifier) this.editor.redo();
+                if (isModifier) this.edytor.redo();
                 else handled = false;
                 break;
             case 'x':
-                if (isModifier) this.editor.cutSelection();
+                if (isModifier) this.edytor.cutSelection();
                 else handled = false;
                 break;
             case 'c':
-                if (isModifier) this.editor.copySelection();
+                if (isModifier) this.edytor.copySelection();
                 else handled = false;
                 break;
             case 'v':
-                if (isModifier) this.editor.pasteSelection();
+                if (isModifier) this.edytor.pasteSelection();
                 else handled = false;
                 break;
             case 'a':
-                if (isModifier) this.editor.selectAll();
+                if (isModifier) this.edytor.selectAll();
                 else handled = false;
                 break;
             case 's':
-                if (isModifier) this.editor.saveToFile();
+                if (isModifier) this.edytor.saveToFile();
                 else handled = false;
                 break;
             case 'o':
-                if (isModifier) this.editor.loadFromFile();
+                if (isModifier) this.edytor.loadFromFile();
                 else handled = false;
                 break;
             default:
@@ -259,6 +303,9 @@ export class InputHandler {
         }
     }
 
+    /**
+     * Obsluga menu kontekstowego
+     */
     private handleContextMenu(e: MouseEvent): void {
         e.preventDefault();
 
@@ -278,10 +325,10 @@ export class InputHandler {
             zIndex: '1001',
             minWidth: '150px',
             fontFamily: 'sans-serif',
-            fontSize: '14px',
+            fontSize: '14px'
         });
 
-        this.editor.populateContextMenu(contextMenu);
+        this.edytor.populateContextMenu(contextMenu);
         document.body.appendChild(contextMenu);
 
         const menuRect = contextMenu.getBoundingClientRect();

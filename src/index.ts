@@ -1,6 +1,9 @@
 import { MapEditor } from './MapEditor.js';
 import { TexturePalette } from './TexturePalette.js';
 
+// tu nie ma sensu docstringów, bo to tylko startuje aplikacje i podpina eventy
+// zmienne: canvas, textureGrid, clearBtn, exportBtn, editor, palette
+
 document.addEventListener('DOMContentLoaded', (e) => {
     const canvas = document.getElementById('mapCanvas') as HTMLCanvasElement;
     const textureGrid = document.getElementById('texture-grid') as HTMLDivElement;
